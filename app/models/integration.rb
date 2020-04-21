@@ -2,6 +2,9 @@ class Integration < ApplicationRecord
   belongs_to :account
   has_many :transactions # rubocop:disable Rails/HasManyOrHasOneDependent
   has_many :schedulers # rubocop:disable Rails/HasManyOrHasOneDependent
+  has_many :plant_batches # rubocop:disable Rails/HasManyOrHasOneDependent
+  has_many :harvests # rubocop:disable Rails/HasManyOrHasOneDependent
+
   validates :account_id, :state, :vendor, :vendor_id, presence: true
   validates :facility_id, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :vendor, presence: true
@@ -20,5 +23,10 @@ class Integration < ApplicationRecord
 
   def vendor_module
     "#{vendor.camelize}Service".constantize
+  end
+
+  # For backward compatibility
+  def vendor_id
+    license
   end
 end
