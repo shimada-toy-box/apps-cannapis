@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_16_154230) do
+ActiveRecord::Schema.define(version: 2020_04_21_021803) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -29,12 +29,27 @@ ActiveRecord::Schema.define(version: 2020_04_16_154230) do
     t.index ["id"], name: "index_accounts_on_id", unique: true
   end
 
+  create_table "harvests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "integration_id", null: false
+    t.integer "batch_id"
+    t.string "vendor_id"
+    t.float "weight"
+    t.string "unit"
+    t.string "type"
+    t.datetime "harvested_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["batch_id"], name: "index_harvests_on_batch_id"
+    t.index ["id"], name: "index_harvests_on_id", unique: true
+    t.index ["integration_id"], name: "index_harvests_on_integration_id"
+  end
+
   create_table "integrations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "account_id", null: false
     t.integer "facility_id"
     t.string "state"
     t.string "vendor"
-    t.string "vendor_id"
+    t.string "license"
     t.text "secret"
     t.datetime "deleted_at"
     t.datetime "created_at", precision: 6, null: false
@@ -49,6 +64,22 @@ ActiveRecord::Schema.define(version: 2020_04_16_154230) do
   create_table "papertrails", force: :cascade do |t|
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "plant_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "integration_id", null: false
+    t.integer "batch_id"
+    t.string "vendor_id"
+    t.string "name"
+    t.string "type"
+    t.integer "quantity", default: 0
+    t.string "status", default: "active", null: false
+    t.datetime "modified_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["batch_id"], name: "index_plant_batches_on_batch_id"
+    t.index ["id"], name: "index_plant_batches_on_id", unique: true
+    t.index ["integration_id"], name: "index_plant_batches_on_integration_id"
   end
 
   create_table "schedulers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -83,7 +114,9 @@ ActiveRecord::Schema.define(version: 2020_04_16_154230) do
     t.index ["type"], name: "index_transactions_on_type"
   end
 
+  add_foreign_key "harvests", "integrations"
   add_foreign_key "integrations", "accounts"
+  add_foreign_key "plant_batches", "integrations"
   add_foreign_key "schedulers", "integrations"
   add_foreign_key "transactions", "accounts"
   add_foreign_key "transactions", "integrations"
